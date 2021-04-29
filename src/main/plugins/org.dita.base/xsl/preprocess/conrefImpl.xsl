@@ -35,9 +35,12 @@ See the accompanying LICENSE file for applicable license.
   <xsl:key name="id" match="*[@id]" use="@id"/>
 
   <xsl:template match="/">
-    <xsl:apply-templates>
-      <xsl:with-param name="conref-ids" tunnel="yes" select="()"/>
-    </xsl:apply-templates>
+    <xsl:variable name="resolved" as="document-node()">
+     <xsl:apply-templates>
+       <xsl:with-param name="conref-ids" tunnel="yes" select="()"/>
+     </xsl:apply-templates>
+    </xsl:variable>
+    <xsl:apply-templates select="$resolved/node()" mode="clean"/>
   </xsl:template>
 
   <!-- If the target element does not exist, this template will be called to issue an error -->
@@ -527,6 +530,7 @@ See the accompanying LICENSE file for applicable license.
 
   <xsl:template match="@id">
     <xsl:param name="conref-filename" tunnel="yes" as="xs:string?"/>
+    <xsl:attribute name="conref:orig-id" select="."/>
     <xsl:attribute name="id">
       <xsl:choose>
         <xsl:when test="exists($conref-filename)">
@@ -898,4 +902,21 @@ See the accompanying LICENSE file for applicable license.
     </xsl:call-template>
   </xsl:template>
 
+  <xsl:template match="*[@conref:orig-id]" mode="clean">
+    <xsl:copy>
+      <xsl:copy-of select="@* except @conref:orig-id"/>
+      <xsl:variable name="topic" select="ancestor::*[contains(@class, ' topic/topic ')][1]" as="element()"/>
+      <xsl:if test="empty(key('id', @conref:orig-id, $topic/*[contains(@class, ' topic/body ')]))">
+        <xsl:attribute name="id" select="@conref:orig-id"/>
+      </xsl:if>
+      <xsl:apply-templates select="node()" mode="#current"/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <xsl:template match="node() | @*" mode="clean" priority="0">
+    <xsl:copy>
+      <xsl:apply-templates select="node() | @*" mode="#current"/>
+    </xsl:copy>
+  </xsl:template>
+  
 </xsl:stylesheet>

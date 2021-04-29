@@ -55,5 +55,46 @@
     </x:scenario>    
     
   </x:scenario>
+  
+  <x:scenario label="Rewrite @conref:orig-id">
+    <x:scenario label="when no matching @id">
+      <x:context mode="clean">
+        <topic class="- topic/topic " id="topic">
+          <title class="- topic/title ">title</title>
+          <body class="- topic/body ">
+            <p class="- topic/p " conref:orig-id="foo" id="generated-1"/>
+          </body>
+        </topic>
+      </x:context>
+      <x:expect label="should generate @id">
+        <topic class="- topic/topic " id="topic">
+          <title class="- topic/title ">title</title>
+          <body class="- topic/body ">
+            <p class="- topic/p " id="foo"/>
+          </body>
+        </topic>
+      </x:expect>
+    </x:scenario>
+    <x:scenario label="when matching @id">
+      <x:context mode="clean">
+        <topic class="- topic/topic " id="topic">
+          <title class="- topic/title ">title</title>
+          <body class="- topic/body ">
+            <p class="- topic/p " conref:orig-id="foo" id="generated-1"/>
+            <p class="- topic/p " id="foo"/>
+          </body>
+        </topic>
+      </x:context>
+      <x:expect label="should generate @id">
+        <topic class="- topic/topic " id="topic">
+          <title class="- topic/title ">title</title>
+          <body class="- topic/body ">
+            <p class="- topic/p " id="generated-1"/>
+            <p class="- topic/p " id="foo"/>
+          </body>
+        </topic>
+      </x:expect>
+    </x:scenario>
+  </x:scenario>
 
 </x:description>
