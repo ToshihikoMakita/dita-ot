@@ -36,9 +36,11 @@ See the accompanying LICENSE file for applicable license.
 
   <xsl:template match="/">
     <xsl:variable name="resolved" as="document-node()">
-     <xsl:apply-templates>
-       <xsl:with-param name="conref-ids" tunnel="yes" select="()"/>
-     </xsl:apply-templates>
+      <xsl:document>
+        <xsl:apply-templates>
+          <xsl:with-param name="conref-ids" tunnel="yes" select="()"/>
+        </xsl:apply-templates>
+      </xsl:document>
     </xsl:variable>
     <xsl:apply-templates select="$resolved/node()" mode="clean"/>
   </xsl:template>
@@ -905,9 +907,17 @@ See the accompanying LICENSE file for applicable license.
   <xsl:template match="*[@conref:orig-id]" mode="clean">
     <xsl:copy>
       <xsl:copy-of select="@* except @conref:orig-id"/>
+      <xsl:variable name="orig-id" select="@conref:orig-id" as="attribute()"/>
       <xsl:variable name="topic" select="ancestor::*[contains(@class, ' topic/topic ')][1]" as="element()"/>
-      <xsl:if test="empty(key('id', @conref:orig-id, $topic/*[contains(@class, ' topic/body ')]))">
-        <xsl:attribute name="id" select="@conref:orig-id"/>
+      <xsl:variable name="content" select="$topic/*[not(contains(@class, ' topic/topic '))]" as="element()*"/>
+      <xsl:variable name="first" select="($content//@conref:orig-id[. = $orig-id])[1]" as="attribute()"/>
+      <xsl:variable name="ids" as="element()*">
+        <xsl:for-each select="$content">
+          <xsl:sequence select="key('id', $orig-id, .)"/>
+        </xsl:for-each>
+      </xsl:variable>
+      <xsl:if test="empty($ids) and $orig-id is $first">
+        <xsl:attribute name="id" select="$orig-id"/>
       </xsl:if>
       <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:copy>
