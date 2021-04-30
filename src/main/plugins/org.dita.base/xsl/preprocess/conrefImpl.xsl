@@ -551,34 +551,25 @@ See the accompanying LICENSE file for applicable license.
     <xsl:param name="topicid" tunnel="yes" as="xs:string?"/>
     <xsl:param name="elemid" tunnel="yes" as="xs:string?"/>
     <xsl:param name="conref-source-topicid" tunnel="yes" as="xs:string?"/>
-    <xsl:variable name="conref-topicid" as="xs:string">
-      <xsl:choose>
-        <xsl:when test="empty($topicid)">
-          <xsl:value-of select="//*[contains(@class, ' topic/topic ')][1]/@id"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$topicid"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
+    
+    <xsl:variable name="conref-topicid" as="xs:string"
+                  select="if (exists($topicid))
+                          then $topicid
+                          else //*[contains(@class, ' topic/topic ')][1]/@id"/>
     <xsl:variable name="href-topicid" select="dita-ot:get-topic-id(.)" as="xs:string?"/>
     <xsl:variable name="href-elemid" select="dita-ot:get-element-id(.)" as="xs:string?"/>
     <xsl:variable name="conref-gen-id" as="xs:string">
-      <xsl:choose>
-        <xsl:when test="empty($elemid) or $elemid = $href-elemid">
-          <xsl:value-of select="generate-id(key('id', $conref-topicid)[contains(@class, ' topic/topic ')]//*[@id = $href-elemid])"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="generate-id(key('id', $conref-topicid)[contains(@class, ' topic/topic ')]//*[@id = $elemid]//*[@id = $href-elemid])"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:variable name="topic" select="key('id', $conref-topicid)[contains(@class, ' topic/topic ')]"/>
+      <xsl:sequence select="if (empty($elemid) or $elemid = $href-elemid)
+                            then generate-id($topic//*[@id = $href-elemid])
+                            else generate-id($topic//*[@id = $elemid]//*[@id = $href-elemid])"/>
     </xsl:variable>
     <xsl:variable name="href-gen-id" as="xs:string">
-      <xsl:variable name="topic" select="key('id', $href-topicid)"/>
-      <xsl:value-of select="generate-id($topic[contains(@class, ' topic/topic ')]//*[@id = $href-elemid][generate-id(ancestor::*[contains(@class, ' topic/topic ')][1]) = generate-id($topic)])"/>
+      <xsl:variable name="topic" select="key('id', $href-topicid)[contains(@class, ' topic/topic ')]"/>
+      <xsl:value-of select="generate-id($topic//*[@id = $href-elemid][generate-id(ancestor::*[contains(@class, ' topic/topic ')][1]) = generate-id($topic)])"/>
     </xsl:variable>
     <xsl:choose>
-      <xsl:when test="($conref-gen-id = '') or (not($conref-gen-id = $href-gen-id))">
+      <xsl:when test="$conref-gen-id = '' or not($conref-gen-id = $href-gen-id)">
         <!--href target is not in conref target -->
         <xsl:value-of select="$current-relative-path"/>
         <xsl:value-of select="$conref-filename"/>
