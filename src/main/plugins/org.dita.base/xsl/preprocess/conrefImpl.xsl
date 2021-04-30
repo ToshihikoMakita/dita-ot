@@ -534,17 +534,15 @@ See the accompanying LICENSE file for applicable license.
 
   <xsl:template match="@id">
     <xsl:param name="conref-filename" tunnel="yes" as="xs:string?"/>
-    <xsl:attribute name="conref:orig-id" select="."/>
-    <xsl:attribute name="id">
-      <xsl:choose>
-        <xsl:when test="exists($conref-filename)">
-          <xsl:value-of select="generate-id(..)"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="."/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:attribute>
+    <xsl:choose>
+      <xsl:when test="exists($conref-filename)">
+        <xsl:attribute name="id" select="generate-id(..)"/>
+        <xsl:attribute name="conref:orig-id" select="."/>
+      </xsl:when>     
+      <xsl:otherwise>
+        <xsl:copy/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="generate-href">
